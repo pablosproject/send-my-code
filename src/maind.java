@@ -1,6 +1,6 @@
 
-public class maind {
-
+public class maind 
+{
 	/**
 	 * @param args
 	 */
