@@ -8,6 +8,10 @@ public class Server extends Connessione
 	private ServerSocket server_socket;
 	private Socket client_socket;
 	
+	
+	/*
+	 * Il costruttore inizializza il server e lo mette in attesa di connessioni
+	 */
 	public Server(int port) throws IOException
 	{
 		this.server_socket=new ServerSocket(port);
@@ -23,8 +27,8 @@ public class Server extends Connessione
 	@Override
 	public void connect() throws IOException 
 	{
+		Service.log("In attesa di connessioni dal Client");
 		this.client_socket= server_socket.accept();
-		System.out.println("In attesa di connessioni dal Client");
 		
 	}
 
