@@ -1,4 +1,5 @@
 
+import java.io.IOException;
 import java.net.*;
 
 public class Client extends Connessione 
@@ -7,7 +8,18 @@ public class Client extends Connessione
 	
 	public Client()
 	{
-		this.socket=new Socket();
+		try
+		{
+			this.socket=new Socket("localhost",4444);
+		} 
+		catch (UnknownHostException e)
+		{
+			e.printStackTrace();
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
 	}
 	
 	
@@ -26,4 +38,5 @@ public class Client extends Connessione
 
 	}
 
+	
 }
