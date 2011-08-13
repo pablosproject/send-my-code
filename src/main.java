@@ -1,5 +1,6 @@
 import java.math.BigInteger;
 import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.BitSet;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
@@ -18,9 +19,9 @@ public class main
 	public static void main(String[] args) throws InterruptedException 
 	{
 		
-		Service.log("Creazione dei parametri DH 1");
+		Service.log("Creazione dei parametri DH 1",2);
 		DHParametersGenerator generator1= new DHParametersGenerator();
-		generator1.init(512, 2, new SecureRandom());
+		generator1.init(512, 100, new SecureRandom());
 		DHParameters parameter1= generator1.generateParameters();
 		
 		DHKeyGenerationParameters key_gen_par1= new DHKeyGenerationParameters(new SecureRandom(), parameter1);
@@ -30,10 +31,15 @@ public class main
 		
 		AsymmetricCipherKeyPair key1= key_gen1.generateKeyPair();
 		DHPublicKeyParameters parametri_pub=(DHPublicKeyParameters) key1.getPublic();
+		System.out.println(parametri_pub.getParameters().toString());
 		
-		Service.log("Creazione dei parametri DH 2");
+		BigInteger p=parametri_pub.getParameters().getP();
+		BigInteger q=parametri_pub.getParameters().getQ();
+		BigInteger g=parametri_pub.getParameters().getG();
 		
-		DHParameters parameter2= parametri_pub.getParameters();
+		Service.log("Creazione dei parametri DH 2",2);
+		
+		DHParameters parameter2= new DHParameters(p, q,g);
 		
 		DHKeyGenerationParameters key_gen_par2=  new DHKeyGenerationParameters(new SecureRandom(), parameter2);
 		
@@ -54,15 +60,48 @@ public class main
 	    BigInteger esito1=agreement1.calculateAgreement((DHPublicKeyParameters)key2.getPublic());
 	    BigInteger esito2=agreement2.calculateAgreement((DHPublicKeyParameters)key1.getPublic());
 	    
-	     System.out.println(esito1.equals(esito2));	    
-	     Integer numero=23231444;
-	     
-	     String conto= Integer.toBinaryString(numero);
+	     System.out.println(esito1.equals(esito2));
+	     System.out.println(esito1);
+	     System.out.println(esito2);
+//	     Integer numero=23231444;
+//	     
+//	     String conto= Integer.toBinaryString(numero);
 //	     System.out.println(BitConverter(10));
 //	     System.out.println(esito1.toByteArray());
 
 
 		
-	
+
+		
+//		Thread client= new Thread(){
+//		public void run()
+//		{
+//			
+////			Client client=new Client(12344);
+////			int letta=Service.leggiIntero("intero da mandare", true);
+////			while(letta!=0)
+////			{
+////				client.send(letta);
+////			     letta=Service.leggiIntero("intero da mandare", true);
+////
+////			}
+//		}
+//		};
+//		
+//		Thread server= new Thread(){
+//		public void run()
+//		{
+//			Server server=new Server(12344);
+//			server.connect();
+//		    server.startReading();
+//
+//		}
+//		};
+//
+//
+//	
+////		server.start();
+//		client.start();
+//	
 	}
 }
