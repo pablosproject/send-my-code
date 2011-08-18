@@ -1,6 +1,7 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 /**
  * Rappresenta un pacchetto di tipo Tag Length Value da mandare sul socket. Si implementano
@@ -12,16 +13,17 @@ import java.io.IOException;
  */
 public class TLV {
 
-	private final static int INT_LENGTH_BYTE=4;
+	public final static int INT_LENGTH_BYTE=4;
 	private byte[] T;
 	private byte[] L;
 	private byte[] V;
 	
 	public enum TAG{
+		//tag per lo scambio di IV
+		IV(1),
 		//set di tag scambio parametri DH
 		DH_P(101),
 		DH_G(102),
-		DH_Q(103),
 		DH_PARAM_CONFIRM(104),
 		//secondo set di tag
 		EKE_1(201),
@@ -61,7 +63,7 @@ public class TLV {
 			stream.read(letto, 0, INT_LENGTH_BYTE);
 		
 		Integer letto_int=Service.byteToInt(letto);
-		Service.log(letto_int.toString(), 2);
+		Service.log("Tag Letto: "+letto_int.toString(), 2);
 		return Service.byteToInt(letto);	
 	}
 	
@@ -73,6 +75,13 @@ public class TLV {
 		stream.read(v,0,(letto_int-INT_LENGTH_BYTE*2));
 		
 		return v;	
+	}
+	
+	public static int getHostId(byte [] _read){
+
+		byte[] received_host_id=new byte[INT_LENGTH_BYTE];
+		received_host_id=Arrays.copyOfRange(_read, 0,INT_LENGTH_BYTE);
+		return Service.byteToInt(received_host_id);
 	}
 	
 }

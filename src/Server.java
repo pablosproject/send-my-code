@@ -27,6 +27,7 @@ public class Server extends Connection {
 			Service.log("Server: errore alla creazione del socket", 2);
 			e.printStackTrace();
 		}
+		connect();
 	}
 
 	

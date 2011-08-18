@@ -1,6 +1,8 @@
 
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.*;
 
 
@@ -18,7 +20,8 @@ public  class Service
 	public static void log(String messaggio, int c_s)
 	{
 		 Calendar calendario=Calendar.getInstance();
-		 String orario;
+		 @SuppressWarnings("unused")
+		String orario;
 		  int ore = calendario.get(Calendar.HOUR);
 		  int minuti = calendario.get(Calendar.MINUTE);
 		  int secondi = calendario.get(Calendar.SECOND);
@@ -30,9 +33,9 @@ public  class Service
 		
 		  String host="";
 		  if (c_s==0)
-			  host="client";
+			  host="Client";
 		  else if (c_s==1)
-			  host="server";
+			  host="Server";
 		  
 		  System.out.println(ore+":"+minuti+":"+secondi+" - "+" "+host+": "+messaggio);
 	}
@@ -117,9 +120,63 @@ public  class Service
 		byte[] c = new byte[a.length + b.length];
 		System.arraycopy(a, 0, c, 0, a.length);
 		System.arraycopy(b, 0, c, a.length, b.length);
-		Service.log("Lunghezza concatenato: "+c.length, 2);
 		return c;
 	}
+	
+	public static boolean siOno(String messaggio) {
+	    while (true) {
+	        char c = leggiChar(messaggio + " [S/N]\n");
+	        if (c == "S".toCharArray()[0] || c == "s".toCharArray()[0]) {
+	            return true;
+	        } else if (c == "N".toCharArray()[0] || c == "n".toCharArray()[0]) {
+	            return false;
+	        } else {
+	            System.out.println("[ERRORE] Devi inserire S o N.");
+	        }
+	    }
+	}
+	
+	public static char leggiChar(String msg) {
+		
+	    char carattere;
+	    boolean letto = false;
+	
+	    while (letto == false) {
+	        System.out.print(msg);
+	        String stringa = input.next();
+	
+	        stringa = stringa.trim();
+	        if (stringa == "") {
+	            System.out.print("[ERRORE] Hai inserito un valore vuoto.");
+	        } else if (stringa.length() > 1) {
+	            System.out.print("[ERRORE] Devi inserire solo un carattere.");
+	        } else {
+	            char[] caratteri = new char[1];
+	            caratteri = stringa.toCharArray();
+	            carattere = caratteri[0];
+	            letto = true;
+	            return carattere;
+	        }
+	    }
+	    return 'a';
+	}
+	
+	public static BigInteger createNounce(){
+		
+		//forzo a cercare un biginteger che rappresentao in byte sia di 32 byte
+		boolean trovato=false;
+		BigInteger nounce = null;
+		while(!trovato){
+			SecureRandom random_gen= new SecureRandom();
+			nounce=new BigInteger(256, random_gen);
+			if(nounce.toByteArray().length==32){
+				trovato=true;
+			}
+		}
+		Service.log("lunghezza nounce: "+nounce.toByteArray().length, 2);
+		return nounce;
+	}
+
 }
 
 
