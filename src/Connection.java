@@ -1,7 +1,11 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 
-
+/**
+ * Classe astratta che implementa la connessione e la gestione degli errori socket
+ * @author paolotaglinani
+ *
+ */
 public abstract class Connection {
 
 	private DataInputStream in;

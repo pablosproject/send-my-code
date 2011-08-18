@@ -74,22 +74,11 @@ public class FSM_Server extends FSM {
 				//se si esce bisogna poi svuotare lo stream di input perchè gli altri tag non li leggo
 			}
 			
-			int codice_IV=TLV.getT(getIn());
-			if (codice_IV==TLV.TAG.IV.getCode()){
-				 letto_IV=TLV.getV(getIn());
-			}
-			else{
-				Service.log("Errore nella lettura dell'IV. Tag iniziale errato", 1);
-				return false;
-				//se si esce bisogna poi svuotare lo stream di input perchè gli altri tag non li leggo
-			}
 			
 			//Primo step setto i parametri DH
 			this.setParameter(new DHParameters(p,g));
 			
-			//Inizializzo il decipher con l'IV ricevuto
-			Service.log("Ricevuto IV, inizializzo il decipher", 1);
-			this.getAES().initDecipher(letto_IV, true);
+
 			
 		}
 		catch(IOException e){
@@ -97,12 +86,12 @@ public class FSM_Server extends FSM {
 					"dei parametri DH e di IV.", 1);
 		}
 		
-		byte[] IV=this.getAES().getIV();
-		TLV conferma=new TLV(TLV.TAG.DH_PARAM_CONFIRM,IV);
+		byte[] vuoto= new byte[0];
+		TLV conferma=new TLV(TLV.TAG.DH_PARAM_CONFIRM,vuoto);
 		try {
 			conferma.sendTLV(getOut());
 		} catch (IOException e) {
-			Service.log("Errore nell'invio conferma paramteri DH e IV", 1);
+			Service.log("Errore nell'invio conferma paramteri DH", 1);
 			e.printStackTrace();
 			return false;
 		}
@@ -150,12 +139,15 @@ public class FSM_Server extends FSM {
 
 		if (TLV.getHostId(_read)==this.getBrother_host_id())
 		{
-
+			int _IV_length=this.getAES().getIV().length;
+			//prelevo l'IV dall'inizio del cifrato
+			byte [] _IV_recv=Arrays.copyOfRange(_read, TLV.INT_LENGTH_BYTE, TLV.INT_LENGTH_BYTE+_IV_length);
 			//passo di generazione della chiave condivisa
-			byte[] _recv_k_enc=Arrays.copyOfRange(_read, TLV.INT_LENGTH_BYTE, _read.length) ;
+			byte[] _recv_k_enc=Arrays.copyOfRange(_read, TLV.INT_LENGTH_BYTE+_IV_length, _read.length) ;
 			Service.log("Ricezione della chiave pubblica del client", 1);
 			
 			//decripto la chiave pubblica ottenuta dal client
+			this.getAES().initDecipher(_IV_recv, true);
 			byte[] _recv_k=this.getAES().decipherData(_recv_k_enc);
 			
 			BigInteger pub_key= new BigInteger(_recv_k);
@@ -179,19 +171,44 @@ public class FSM_Server extends FSM {
 	 */
 	private boolean createSendEKE2()
 	{
+		//ottengo il nome dell'host da mandare
 		byte[] name=Service.intToBytes(this.getHost_id());
+		
 		BigInteger key_public=((DHPublicKeyParameters) this.getKey().getPublic()).getY();
 		byte[] key_public_arr=key_public.toByteArray();
-		Service.log("Dimensione chiave condivisa:"+key_public_arr.length, 1);
-
-		byte[] n_k=Service.concatArray(name, key_public_arr);
+		Service.log("Dimensione chiave pubblica:"+key_public_arr.length, 1);
 		
-		//creo il nuounce di B e lo mando ad A
+		Service.log("Chiave pubblica: "+ key_public, 1);
+		
+		byte[] key_public_enc=this.getAES().cipherData(key_public_arr);
+				
+		BigInteger key_public_enc_print=new BigInteger(key_public_enc);
+		
+		Service.log("Chiave pubblica criptata: "+ key_public_enc_print, 1);
+		Service.log("Initialization vector: "+new BigInteger(this.getAES().getIV()), 1);
+
+		byte[] IV_key=Service.concatArray(this.getAES().getIV(), key_public_enc);
+		byte[] name_key=Service.concatArray(name, IV_key);
+		
+		//creo il nuounce di B e lo mando ad A criptato
 		this.Rb=Service.createNounce();
+		Service.log("Nounce B: "+this.Rb,1);
 		
 		byte[] nounce=Rb.toByteArray();
 		
-		byte[] V=Service.concatArray(n_k, nounce);
+		//cambio la chiave al motore AES e lo reinizializzo con un nuovo IV
+		this.getAES().setKey(this.shared_key.toByteArray());
+		this.getAES().initChiper(true);
+		
+		Service.log("Cambio di chiave avvenuto: "+ Arrays.equals(this.getAES().getKey(),this.shared_key.toByteArray()), 1);
+		
+		byte[] nounce_enc=this.getAES().cipherData(nounce);
+		Service.log("Dimensione del nounce prima: "+nounce.length+" dimensione del nounce criptato: "+nounce_enc.length, 1);
+		byte[] IV_rb=this.getAES().getIV();
+		
+		byte[] IV_nounce=Service.concatArray(IV_rb, nounce_enc);
+		
+		byte[] V=Service.concatArray(name_key, IV_nounce);
 
 		TLV to_send=new TLV(TLV.TAG.EKE_2, V);
 		Service.log("Mando il pacchetto EKE2", 0);
@@ -212,21 +229,57 @@ public class FSM_Server extends FSM {
 		
 		byte[] _read=TLV.getV(this.getIn());
 		
-		int length_b=this.getRb().toByteArray().length;
+		int length_rb=this.getRb().toByteArray().length;
 		
-		byte[] _rb=Arrays.copyOfRange(_read, 0,length_b);
-		byte[] _ra=Arrays.copyOfRange(_read, length_b, _read.length);
+		byte[] IV_rb_ra=Arrays.copyOfRange(_read, 0, this.getAES().getIV().length);
 		
-		BigInteger _Ra=new BigInteger(_ra);
+		byte[] _rb_ra_enc=Arrays.copyOfRange(_read, this.getAES().getIV().length,_read.length);
+		
+		//inizializzo il decifratore con l'IV e decifro
+		this.getAES().initDecipher(IV_rb_ra, true);
+		byte[] _rb_ra=this.getAES().decipherData(_rb_ra_enc);
+		
+		//estraggo entrambi i nounce
+		byte[] _ra=Arrays.copyOfRange(_rb_ra, length_rb, _rb_ra.length);
+		byte[] _rb=Arrays.copyOfRange(_rb_ra, 0, length_rb);
+		this.Ra=new BigInteger(_ra);
 		BigInteger _Rb=new BigInteger(_rb);
 		
-		Service.log(""+_Rb+"\n"+this.getRb(), 1);
-		System.out.print(_Rb.compareTo(this.getRb()));
-		
-		
-		return false;
+		//verifico che il nuonce arrivato sia corretto
+		if(_Rb.compareTo(this.getRb())==0){
+			Service.log("Verifica del nounce Rb corretta.",1);
+			return createSendEKE4();
+		}
+		else
+			return false;
 	}
 	
+	/**
+	 * Cripta il nounce ricevuto da A con la chiave generata, ni modo da confermare
+	 * @return
+	 */
+	private boolean createSendEKE4() {
+		
+		byte[] _ra=this.getRa().toByteArray();
+				
+		//inizializzo il cifrario con la chiave K e genero un nuovo IV
+		this.getAES().initChiper(true);
+		byte[] send_enc=this.getAES().cipherData(_ra);
+		
+		byte[] IV_nounces=Service.concatArray(this.getAES().getIV(), send_enc);
+		
+		TLV packet=new TLV(TLV.TAG.EKE_4,IV_nounces);
+		try {
+			packet.sendTLV(this.getOut());
+		}
+		catch (IOException e) {
+			e.printStackTrace();
+			return false;
+		}
+		
+		return true;
+	}
+
 	public DHParameters getParameter() {
 		return parameter;
 	}
