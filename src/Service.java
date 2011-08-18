@@ -173,7 +173,6 @@ public  class Service
 				trovato=true;
 			}
 		}
-		Service.log("lunghezza nounce: "+nounce.toByteArray().length, 2);
 		return nounce;
 	}
 

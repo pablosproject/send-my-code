@@ -63,7 +63,7 @@ public class TLV {
 			stream.read(letto, 0, INT_LENGTH_BYTE);
 		
 		Integer letto_int=Service.byteToInt(letto);
-		Service.log("Tag Letto: "+letto_int.toString(), 2);
+	//	Service.log("Tag Letto: "+letto_int.toString(), 2);
 		return Service.byteToInt(letto);	
 	}
 	

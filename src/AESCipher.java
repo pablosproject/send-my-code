@@ -1,10 +1,10 @@
 import java.security.SecureRandom;
+import java.util.Arrays;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.DataLengthException;
 import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.engines.AESEngine;
-import org.bouncycastle.crypto.engines.BlowfishEngine;
 import org.bouncycastle.crypto.modes.CBCBlockCipher;
 import org.bouncycastle.crypto.paddings.PaddedBufferedBlockCipher;
 import org.bouncycastle.crypto.params.KeyParameter;
@@ -13,7 +13,7 @@ import org.bouncycastle.crypto.params.ParametersWithIV;
 
 public class AESCipher {
 
-	
+	private final int KEY_SIZE=32;
 	private byte [] key;
 	private byte [] IV_cipher;
 	private byte [] IV_decipher;
@@ -27,7 +27,7 @@ public class AESCipher {
 	
 	/**
 	 * Inizializza l'algoritmo per cifrare simmetricamente, in caso di cambio chiave si risetta
-	 * @param new_iv
+	 * @param new_iv 
 	 */
 	public void initChiper(boolean new_iv){
 		
@@ -98,6 +98,11 @@ public class AESCipher {
 		 return ciphertext;
 	}
 
+	 public int getOutSize(byte[] data){
+		
+		 return this.cipher.getOutputSize(data.length);
+		 
+	 }
 
 
 
@@ -106,8 +111,19 @@ public class AESCipher {
 	}
 
 
-	public void setKey(String pass) {
-		this.key = SHAUtilities.hasSHA256(pass);
+	public void setKey(byte[] pass) {
+		/*a volte capita che la rappresentazione in byte array della chiave
+		 *eccceda di un byte la dimensione corretta. In quel caso la trasformo
+		 *in un multiplo della dimensione corretta troncando l'ultimo bit
+		 */
+		if(pass.length>KEY_SIZE){
+			Service.log("Chiave accorciata", 2);
+			byte[] _pass=Arrays.copyOfRange(pass, 0, KEY_SIZE);
+			this.key=_pass;
+		}
+		else{
+			this.key = pass;
+		}
 	}
 
 
