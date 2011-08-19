@@ -21,7 +21,7 @@ public abstract class FSM
 	}
 	
 	public abstract boolean start();
-	public abstract boolean nextStep() throws IOException;
+	public abstract boolean nextStep() throws IOException, CipherException;
 	
 
 	public DataInputStream getIn() {

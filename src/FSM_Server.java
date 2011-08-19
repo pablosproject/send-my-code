@@ -5,6 +5,7 @@ import java.math.BigInteger;
 import java.util.Arrays;
 
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
+import org.bouncycastle.crypto.InvalidCipherTextException;
 import org.bouncycastle.crypto.params.DHParameters;
 import org.bouncycastle.crypto.params.DHPrivateKeyParameters;
 import org.bouncycastle.crypto.params.DHPublicKeyParameters;
@@ -101,7 +102,7 @@ public class FSM_Server extends FSM {
 		return true;
 	}
 
-	public boolean nextStep() throws IOException {
+	public boolean nextStep() throws IOException, CipherException {
 		
 		int recv_tag=TLV.getT(this.getIn());
 		//Prelevo il tag del pacchetto inviato, e controllo se
@@ -112,7 +113,6 @@ public class FSM_Server extends FSM {
 			switch(this.state){
 			case WAIT_EKE1:
 				return processEKE1();
-			
 			case WAIT_EKE3:
 				return processEKE3();
 			}	
@@ -130,8 +130,9 @@ public class FSM_Server extends FSM {
 	 * Genera il pacchetto di risposta EKE2 e lo invia al client
 	 * @return
 	 * @throws IOException eccezoni generate dall'invio e ricezione sul socket
+	 * @throws InvalidCipherTextException Eccezione generata in quanto la chiave non è corretta o il ciphertext è corrotto
 	 */
-	private boolean processEKE1() throws IOException{
+	private boolean processEKE1() throws IOException, InvalidCipherTextException{
 		
 		//ho già controllato che il pacchetto sia di tipo EKE1
 		//ora controllo che il nome della persona corrisponda a colui di cui posseggo la chiave
@@ -153,7 +154,7 @@ public class FSM_Server extends FSM {
 			BigInteger pub_key= new BigInteger(_recv_k);
 			Service.log("Generazione della chiave condivisa", 1);
 			this.shared_key=DHUtilities.calculateDHAgreement((DHPrivateKeyParameters)key.getPrivate(), pub_key,this.getParameter());
-			Service.log("Chiave condivisa: "+this.shared_key, 1);
+			Service.log("Chiave condivisa: "+this.shared_key.toString(16), 1);
 			
 			//invio della propria chiave pubblica
 			return createSendEKE2();
@@ -168,8 +169,9 @@ public class FSM_Server extends FSM {
 	/**
 	 * 
 	 * @return true se l'invio è corretto, false invece
+	 * @throws InvalidCipherTextException Errore se la chiave non è corretta
 	 */
-	private boolean createSendEKE2()
+	private boolean createSendEKE2() throws InvalidCipherTextException
 	{
 		//ottengo il nome dell'host da mandare
 		byte[] name=Service.intToBytes(this.getHost_id());
@@ -225,7 +227,7 @@ public class FSM_Server extends FSM {
 		return true;
 	}
 		
-	private boolean processEKE3() throws IOException{
+	private boolean processEKE3() throws IOException, InvalidCipherTextException{
 		
 		byte[] _read=TLV.getV(this.getIn());
 		
@@ -257,8 +259,9 @@ public class FSM_Server extends FSM {
 	/**
 	 * Cripta il nounce ricevuto da A con la chiave generata, ni modo da confermare
 	 * @return
+	 * @throws InvalidCipherTextException 
 	 */
-	private boolean createSendEKE4() {
+	private boolean createSendEKE4() throws InvalidCipherTextException {
 		
 		byte[] _ra=this.getRa().toByteArray();
 				

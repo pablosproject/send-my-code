@@ -7,7 +7,8 @@ import java.util.Arrays;
  * Rappresenta un pacchetto di tipo Tag Length Value da mandare sul socket. Si implementano
  * i metodi che ritornano l'intero byte array, oppure solo alcuni, 
  * Verranno implementati i metodi che leggono da uno stream solo alcune parti, che serviranno
- * per l'autenticazione
+ * per l'autenticazione.
+ * Tutti i metodi lanciano le eccezioni, in questo modo le eccezioni di lettura e scrittura vengono gestite a più alto livello.
  * @author paolotaglinani
  *
  */
@@ -19,8 +20,7 @@ public class TLV {
 	private byte[] V;
 	
 	public enum TAG{
-		//tag per lo scambio di IV
-		IV(1),
+
 		//set di tag scambio parametri DH
 		DH_P(101),
 		DH_G(102),
@@ -62,7 +62,7 @@ public class TLV {
 		byte[] letto= new byte[4];
 			stream.read(letto, 0, INT_LENGTH_BYTE);
 		
-		Integer letto_int=Service.byteToInt(letto);
+//		Integer letto_int=Service.byteToInt(letto);
 	//	Service.log("Tag Letto: "+letto_int.toString(), 2);
 		return Service.byteToInt(letto);	
 	}

@@ -9,20 +9,31 @@ public class Client extends Connection
 	private Socket socket;
 
 	/**
-	 * Inizializza il client su localhost e porta
+	 * Inizializza il client
 	 * @param port la porta da utilizzare
+	 * @param address l'indirizzo ip del server
 	 */
-	public Client(int port)
+	public Client(int port,String address)
 	{
+		int port_connect=port;
+		String address_connect=address;
 		boolean continua=true;
 		boolean risultato = false;
 		while(continua){
-			 risultato=createSocket(port);
+			 risultato=createSocket(port_connect,address_connect);
 			if(risultato)
 				continua=false;
 			else{
 				Service.log("Errore nella connessione. Controllare i parametri.",0);
-				 continua=Service.siOno("Si desidera riprovare a connettersi?");
+				 continua=Service.siOno("Si desidera riprovare a connettersi cambiando i parametri?");
+				 if (continua){
+					 if(Service.siOno("Si desidera cambiare l'indirizzo "+address+" ?"))
+						address_connect=Service.leggiStringa("Inserire il nuovo indirizzo ip. (Attenzione al formato)");
+					 if (Service.siOno("Si desidera modificare la porta "+port+"?"))
+						 port_connect=Service.leggiIntero("Inserire il nuovo numero di porta", true);
+				 }
+				 
+				 
 			}
 		}
 		
@@ -52,11 +63,11 @@ public class Client extends Connection
 		
 	}
 	
-	public boolean createSocket(int port)
+	public boolean createSocket(int port, String address)
 	{
 		try
 		{
-			this.socket=new Socket("localhost",port);
+			this.socket=new Socket(address,port);
 			Service.log("Client: socket creato e connesso al server", 2);
 		} 
 		catch (UnknownHostException e)
