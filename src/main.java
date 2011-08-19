@@ -78,7 +78,7 @@ public class main
 		{
 			Host client_host = null;
 			try {
-				client_host=new Host(0, 1235,2,1,"uttinne");
+				client_host=new Host(0, 1235,2,1,"cacca");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -104,9 +104,11 @@ public class main
 		};
 
 
+		server.start();
+		
 		client.start();
 
-		server.start();
+		
 	
 	}
 }

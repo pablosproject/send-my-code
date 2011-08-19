@@ -61,18 +61,19 @@ public class AESCipher {
 	 * @param cipher il motore di cifrature
 	 * @param data i dati da cifrare
 	 * @return un bytearray con i dati cifrati
+	 * @throws InvalidCipherTextException si trova qualcosa di inaspettato nel messaggio. solitamente è perchè la chiave è sbagliata
 	 */
-	 public byte[] cipherData( byte[] data){
+	 public byte[] cipherData( byte[] data) throws InvalidCipherTextException{
 		 return genericCiphering(data,this.cipher);
 	 }
 
-	 public byte[] decipherData(byte[] data){
+	 public byte[] decipherData(byte[] data) throws InvalidCipherTextException{
 		 return genericCiphering(data, this.decipher);
 	 }
 
 	
 	 
-	 private byte[] genericCiphering(byte[] data, PaddedBufferedBlockCipher engine) {
+	 private byte[] genericCiphering(byte[] data, PaddedBufferedBlockCipher engine) throws InvalidCipherTextException {
 		int size=engine.getOutputSize(data.length);
 		 byte[] result=new byte[size];
 		 
@@ -86,9 +87,6 @@ public class AESCipher {
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
 			Service.log("Errore cipher, non è inizializzato", 2);
-			e.printStackTrace();
-		} catch (InvalidCipherTextException e) {
-			Service.log("Errore cipher, non trovo il padding", 2);
 			e.printStackTrace();
 		}
 		 int actualLength = length_processed + length_final;

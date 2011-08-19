@@ -1,9 +1,5 @@
 import java.io.IOException;
-import java.security.SecureRandom;
-
 import org.bouncycastle.crypto.AsymmetricCipherKeyPair;
-import org.bouncycastle.crypto.generators.DHParametersGenerator;
-import org.bouncycastle.crypto.params.DHParameters;
 
 
 public class Host
@@ -17,7 +13,7 @@ public class Host
 	public Host(int type_connection, int port,int _host_id, int _brother_host_id, String chiave) throws IOException
 	{
 		if (type_connection==0){
-			this.connection=new Client(port);
+			this.connection=new Client(port,"192.168.0.8");
 			createDHParameters();
 			this.setFsm(new FSM_Client(connection.getOut(), connection.getIn(), this.key, _host_id, _brother_host_id,chiave));
 			this.setBrother_host_id(_brother_host_id);
