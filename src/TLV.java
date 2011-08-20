@@ -8,7 +8,7 @@ import java.util.Arrays;
  * i metodi che ritornano l'intero byte array, oppure solo alcuni, 
  * Verranno implementati i metodi che leggono da uno stream solo alcune parti, che serviranno
  * per l'autenticazione.
- * Tutti i metodi lanciano le eccezioni, in questo modo le eccezioni di lettura e scrittura vengono gestite a più alto livello.
+ * Tutti i metodi lanciano le eccezioni, in questo modo le eccezioni di lettura e scrittura vengono gestite a piÔøΩ alto livello.
  * @author paolotaglinani
  *
  */
@@ -29,8 +29,10 @@ public class TLV {
 		EKE_1(201),
 		EKE_2(202),
 		EKE_3(203),
-		EKE_4(204);
+		EKE_4(204),
 		
+		//tag per il reset della macchina
+		RESET(999);
 		private int code;
 		
 		private TAG(int _code) {

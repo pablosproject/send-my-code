@@ -36,14 +36,14 @@ public class AESCipher {
 			byte[] _IV=new byte[this.cipher.getBlockSize()];
 			SecureRandom rand=new SecureRandom();
 			rand.nextBytes(_IV);
-			this.setIV(_IV);
+			this.setIV_Chiper(_IV);
 		}
         CipherParameters ivAndKey = new ParametersWithIV(new KeyParameter(this.getKey()), this.IV_cipher);
 		this.cipher.init(true, ivAndKey);
 	}
 
 	/**
-	 * Inizializza l'algoritmo per decifrare. In caso cambio chiave si può specificare cosa fare con IV
+	 * Inizializza l'algoritmo per decifrare. In caso cambio chiave si puÔøΩ specificare cosa fare con IV
 	 * @param IV
 	 * @param new_iv
 	 */
@@ -61,7 +61,7 @@ public class AESCipher {
 	 * @param cipher il motore di cifrature
 	 * @param data i dati da cifrare
 	 * @return un bytearray con i dati cifrati
-	 * @throws InvalidCipherTextException si trova qualcosa di inaspettato nel messaggio. solitamente è perchè la chiave è sbagliata
+	 * @throws InvalidCipherTextException si trova qualcosa di inaspettato nel messaggio. solitamente ÔøΩ perchÔøΩ la chiave ÔøΩ sbagliata
 	 */
 	 public byte[] cipherData( byte[] data) throws InvalidCipherTextException{
 		 return genericCiphering(data,this.cipher);
@@ -83,10 +83,10 @@ public class AESCipher {
 		try {
 			length_final = engine.doFinal(result, length_processed);
 		} catch (DataLengthException e) {
-			Service.log("Errore cipher, non c'è abbastanza spazio", 2);
+			Service.log("Errore cipher, non c'ÔøΩ abbastanza spazio", 2);
 			e.printStackTrace();
 		} catch (IllegalStateException e) {
-			Service.log("Errore cipher, non è inizializzato", 2);
+			Service.log("Errore cipher, non ÔøΩ inizializzato", 2);
 			e.printStackTrace();
 		}
 		 int actualLength = length_processed + length_final;
@@ -125,12 +125,12 @@ public class AESCipher {
 	}
 
 
-	public byte [] getIV() {
+	public byte [] getIV_Chiper() {
 		return IV_cipher;
 	}
 
 
-	public void setIV(byte [] iV) {
+	public void setIV_Chiper(byte [] iV) {
 		IV_cipher = iV;
 	}
 
