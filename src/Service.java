@@ -16,7 +16,7 @@ public  class Service
      *Stampa un messaggio di log, aggiungendo il tempo
      */
     
-	public static void log(String messaggio, int c_s)
+	public static  void log(String messaggio, int c_s)
 	{
 		 Calendar calendario=Calendar.getInstance();
 		 @SuppressWarnings("unused")
@@ -46,21 +46,22 @@ public  class Service
 	 * @return la stringa letta
 	 */
 	
-	public static String leggiStringa(String msg) {
+	public static  String leggiStringa(String msg) {
 	
 	    String stringa = "";
 	    boolean letto = false;
 	
 	    while (letto == false) {
 	        System.out.println(msg + " ");
-	        stringa = input.next();
+	        stringa = input.nextLine();
 	        stringa = stringa.trim();
 	
 	        if (stringa.isEmpty()) {
 	            System.out.println("[ERRORE] Hai inserito un valore vuoto.");
-	        } 
+	        }
 	        else {
 	            letto = true;
+
 	        }
 	    }
 	
@@ -95,7 +96,7 @@ public  class Service
 	 */
 	
 	
-	public static int leggiIntero(String messaggio, boolean aCapo) {
+	public static  int leggiIntero(String messaggio, boolean aCapo) {
 	    boolean finito = false;
 	    int valoreLetto = 0;
 	    do {
@@ -122,7 +123,7 @@ public  class Service
 		return c;
 	}
 	
-	public static boolean siOno(String messaggio) {
+	public static synchronized boolean siOno(String messaggio) {
 	    while (true) {
 	        char c = leggiChar(messaggio + " [S/N]\n");
 	        if (c == "S".toCharArray()[0] || c == "s".toCharArray()[0]) {

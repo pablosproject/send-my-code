@@ -2,6 +2,8 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import org.bouncycastle.crypto.InvalidCipherTextException;
+
 
 public abstract class FSM 
 {
@@ -20,10 +22,20 @@ public abstract class FSM
 		this.AES.initChiper(true);
 	}
 	
-	public abstract boolean start();
-	public abstract boolean nextStep() throws IOException, CipherException;
+	public abstract boolean start() throws IOException;
+	public abstract boolean nextStep() throws IOException, InvalidCipherTextException, 
+	IncorrectHostnameException, IncorrectNounceException, ResetMachineException, IncorrectTagException;
 	
-
+	public void sendReset(){
+		byte[] vuoto=new byte[0];
+		TLV reset=new TLV(TLV.TAG.RESET,vuoto);
+		try {
+			reset.sendTLV(this.getOut());
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+	
 	public DataInputStream getIn() {
 		return in;
 	}
