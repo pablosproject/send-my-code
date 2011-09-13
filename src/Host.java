@@ -20,7 +20,7 @@ public class Host
 			Service.log("Inserire indirizzo ip a cui connettersi:", 0);
 			String ip=Service.leggiStringa("");
 
-			Service.log("Inserire la porta su cui il server è in ascolto", 0);
+			Service.log("Inserire la porta su cui la macchina remota è in ascolto:", 0);
 			int port=Service.leggiIntero("", true);
 
 			this.connection=new Client(port,ip);
@@ -35,7 +35,7 @@ public class Host
 		//inizializzo l'host con una macchina server
 		else if (type_connection==1){
 
-			Service.log("Inserire la porta su cui il server è in ascolto", 1);
+			Service.log("Inserire la porta su cui attendere connessioni: ", 1);
 			int port=Service.leggiIntero("", true);
 			this.connection=new Server(port);
 
@@ -89,7 +89,7 @@ public class Host
 			catch (InvalidCipherTextException e) {
 				Service.log("ATTENZIONE. Non sono stati decifrati i messaggi arrivati in quanto " +
 						"la chiave utilizzata non è corretta. La macchina viene riavviata, si consiglia di terminare l'esecuzione se questo problema si " +
-						"presenta altre volte. Potrebbe essere il tentativo di qualcuno che conosce il nome macchina di instaurare una sessione", 2);
+						"presenta altre volte.\n Potrebbe essere il tentativo di qualche malintenzionato che conosce il nome macchina di indovinare la chiave", 2);
 				this.resetMachineAndSignal();
 			} 
 			catch (IncorrectHostnameException e) {
@@ -107,6 +107,9 @@ public class Host
 				this.resetMachineAndSignal();
 			}
 		}
+		
+		Service.log("Il programa termina.", 2);
+		System.exit(0);
 	}
 
 	private void resetMachineAndSignal(){
@@ -130,9 +133,16 @@ public class Host
 			}
 			this.startHost();
 		}
-		else
+		else{
+			TLV abort=new TLV(TLV.TAG.ABORT,new byte[0]);
+			try {
+				abort.sendTLV(this.fsm.getOut());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			System.exit(-2);
-		
+		}
 		
 		
 	}

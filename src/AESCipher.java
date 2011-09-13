@@ -115,7 +115,7 @@ public class AESCipher {
 		 *in un multiplo della dimensione corretta troncando l'ultimo bit
 		 */
 		if(pass.length>KEY_SIZE){
-			Service.log("Chiave accorciata", 2);
+			//Service.log("Chiave accorciata", 2);
 			byte[] _pass=Arrays.copyOfRange(pass, 0, KEY_SIZE);
 			this.key=_pass;
 		}
