@@ -30,9 +30,11 @@ public class TLV {
 		EKE_2(202),
 		EKE_3(203),
 		EKE_4(204),
-		
+		FILE(205),
+		NO_FILE(206),
 		//tag per il reset della macchina
-		RESET(999);
+		RESET(999),
+		ABORT(0);
 		private int code;
 		
 		private TAG(int _code) {

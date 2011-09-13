@@ -32,6 +32,8 @@ public class Client extends Connection
 					 if (Service.siOno("Si desidera modificare la porta "+port+"?"))
 						 port_connect=Service.leggiIntero("Inserire il nuovo numero di porta", true);
 				 }
+				 else 
+					 continua=true;
 				 
 				 
 			}
@@ -41,18 +43,18 @@ public class Client extends Connection
 
 			try {
 				this.setIn(new DataInputStream(this.socket.getInputStream()));
-				Service.log("Client: stream output creato", 2);
+				//Service.log("Client: stream output creato", 2);
 			} 
 			catch (IOException e) {
-				Service.log("Client: errore nella creazione dello stream output", 2);
+				//Service.log("Client: errore nella creazione dello stream output", 2);
 				e.printStackTrace();
 			}
 			try {
 				this.setOut(new DataOutputStream(this.socket.getOutputStream()));
-				Service.log("Client: stream input creato", 2);
+				//Service.log("Client: stream input creato", 2);
 			} 
 			catch (IOException e) {
-				Service.log("Client: errore nella creazione dello stream input", 2);
+				//Service.log("Client: errore nella creazione dello stream input", 2);
 				e.printStackTrace();
 			}
 		}
@@ -68,20 +70,20 @@ public class Client extends Connection
 		try
 		{
 			this.socket=new Socket(address,port);
-			Service.log("Client: socket creato e connesso al server", 2);
+			Service.log("socket creato e connesso", 2);
 		} 
 		catch (UnknownHostException e)
 		{
-			Service.log("Client: il server non esiste, oppure non risponde", 2);
+			Service.log("il server non esiste, oppure non risponde", 2);
 			return false;
 		}
 		catch (ConnectException e) {
-			Service.log("L'host non è raggiungibile", 0);
+			Service.log("L'host non risulta raggiungibile", 0);
 			return false;
 		}
 		catch (IOException e)
 		{
-			Service.log("Client: errore nella creazione del socket", 2);
+			Service.log("Errore nella creazione del socket", 2);
 			e.printStackTrace();
 			return false;
 		}

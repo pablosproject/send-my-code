@@ -1,5 +1,9 @@
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.math.BigInteger;
 import java.util.Arrays;
@@ -17,7 +21,8 @@ public class FSM_Client extends FSM {
 	private enum States_Client{
 		WAIT_DH_PARAM_CONFIRM,
 		WAIT_EKE2,
-		WAIT_EKE4
+		WAIT_EKE4,
+		WAIT_FILE;
 	}
 
 	private States_Client state;
@@ -76,12 +81,19 @@ public class FSM_Client extends FSM {
 				return processEKE2();
 			case WAIT_EKE4:
 				return processEKE4();
+			case WAIT_FILE:
+				return processFileClose();
 			}
 		}
 		else if (recv_tag==TLV.TAG.RESET.getCode()){
 			Service.log("Ricevuto messaggio di reset. Per sicurezza tutti i parametri saranno rigenerati", 0);
 			this.getIn().readInt();
 			throw new ResetMachineException();
+		}
+		else if (recv_tag==TLV.TAG.ABORT.getCode()){
+			Service.log("La macchina remota ha deciso di non continuare con la sessione. Il programma termina", 0);
+			this.getIn().readInt();
+			System.exit(-1);
 		}
 		else{
 			Service.log("ERRORE, tag ricevuto non  corretto", 0);
@@ -103,14 +115,14 @@ public class FSM_Client extends FSM {
 		byte[] name=Service.intToBytes(getHost_id());
 		BigInteger key_public=((DHPublicKeyParameters) DH_key.getPublic()).getY();
 		byte[] key_public_arr=key_public.toByteArray();
-		Service.log("Dimensione chiave condivisa: "+key_public_arr.length,0);
+		//Service.log("Dimensione chiave condivisa: "+key_public_arr.length,0);
 		Service.log("Chiave pubblica: "+ key_public.toString(16), 0);
 
 		byte[] key_public_enc=this.getAES().cipherData(key_public_arr);
 
 		BigInteger key_public_enc_print=new BigInteger(key_public_enc);
 		Service.log("Chiave pubblica criptata: "+ key_public_enc_print.toString(16), 0);
-		Service.log("Initialization vector: "+new BigInteger(this.getAES().getIV_Chiper()).toString(16), 0);
+		//Service.log("Initialization vector: "+new BigInteger(this.getAES().getIV_Chiper()).toString(16), 0);
 
 		//creo il contenuto informativo cifrato, mando IV+chiave cifrata
 		byte[] IV_key=Service.concatArray(this.getAES().getIV_Chiper(), key_public_enc);
@@ -154,7 +166,7 @@ public class FSM_Client extends FSM {
 			//								sottraggo il nome host   sottraggo il nounce criptato 
 			//ricevo la chiave condivisa
 			byte[] _recv_IV_pk=Arrays.copyOfRange(_read, TLV.INT_LENGTH_BYTE, (IV_key_length+TLV.INT_LENGTH_BYTE));
-			Service.log("Ricezione della chiave pubblica del Server", 0);
+			Service.log("Ricezione della chiave pubblica DH", 0);
 
 			//estraggo IV e inizializzo il motore per decriptare
 			byte[] IV_pubkey=Arrays.copyOfRange(_recv_IV_pk, 0, IV_length);
@@ -168,7 +180,7 @@ public class FSM_Client extends FSM {
 			this.server_pub_key= new BigInteger(pubkey);
 			Service.log("Generazione della chiave condivisa", 0);
 			this.shared_key=DHUtilities.calculateDHAgreement((DHPrivateKeyParameters)this.getDH_key().getPrivate(), this.server_pub_key,(DHParameters) ((DHKeyParameters) this.getDH_key().getPublic()).getParameters());
-			Service.log("Chiave condivisa: \n"+this.shared_key, 0);
+			Service.log("Chiave condivisa: "+this.shared_key.toString(16), 0);
 			//Setto la nuova chiave del cifrario
 			this.getAES().setKey(this.shared_key.toByteArray());
 
@@ -186,7 +198,7 @@ public class FSM_Client extends FSM {
 		else{
 			Service.log("Nome host non corretto", 0);
 			throw new IncorrectHostnameException();
-			}
+		}
 	}
 
 	/**
@@ -199,6 +211,8 @@ public class FSM_Client extends FSM {
 	 */
 	private boolean createSendEKE3() throws InvalidCipherTextException, IOException{
 
+		
+		Service.log("Nounce Ra: "+ this.getRa(), 0);
 		byte[] _ra=this.getRa().toByteArray();
 		byte[] _rb=this.getRb().toByteArray();
 
@@ -211,7 +225,7 @@ public class FSM_Client extends FSM {
 		byte[] IV_nounces=Service.concatArray(this.getAES().getIV_Chiper(), send_enc);
 
 		TLV packet=new TLV(TLV.TAG.EKE_3,IV_nounces);
-		Service.log("MAndo EKE3", 0);
+		Service.log("Mando EKE3", 0);
 		packet.sendTLV(this.getOut());
 		this.setExpected_tag(TLV.TAG.EKE_4);
 		this.state=States_Client.WAIT_EKE4;
@@ -242,13 +256,95 @@ public class FSM_Client extends FSM {
 		BigInteger _Ra=new BigInteger(_ra);
 
 		if(this.Ra.compareTo(_Ra)==0){
-			Service.log("Verifica del nounce Ra corretta.", 0);
+			Service.log("Verifica del nounce Ra corretta", 0);
+			return CreateSendFile();
 		}
 		else{
 			Service.log("Nounce ricevuto non corretto", 0);
 			throw new IncorrectNounceException();
 		}
-		return false;
+	}
+
+	private boolean CreateSendFile() throws IOException, InvalidCipherTextException{
+
+		Service.log("Desideri inviare un file?", 0);
+		if(Service.siOno("")){
+			boolean corretto=false;
+			File file = null;
+			FileInputStream fin = null;
+			
+			while(!corretto){
+				Service.log("Inserisci il pathname del file da inviare", 0);
+				String path=Service.leggiStringa("");
+				file=new File(path);
+				try {
+					corretto=true;
+					fin=new FileInputStream(file);
+				} 
+				catch (FileNotFoundException e) {
+					Service.log("Il file non esiste, controllare il pathname", 0);
+					corretto=false;
+				}
+			}
+			
+			byte[] to_send=new byte[(int) file.length()];
+			fin.read(to_send);
+			//inizializzo AES con un nuovo IV e cripto il file
+			
+			this.getAES().initChiper(true);
+			byte[] to_send_enc=this.getAES().cipherData(to_send);
+			byte[] IV_pack=Service.concatArray(this.getAES().getIV_Chiper(), to_send_enc);
+			
+			TLV packet=new TLV(TLV.TAG.FILE, IV_pack);
+			packet.sendTLV(this.getOut());
+			this.expected_tag=TLV.TAG.FILE;
+			this.state=States_Client.WAIT_FILE;
+			return true;
+		}
+		else{
+			byte[] vuoto= new byte[0];
+			TLV packet=new TLV(TLV.TAG.FILE, vuoto);
+			packet.sendTLV(this.getOut());
+			this.expected_tag=TLV.TAG.FILE;
+			this.state=States_Client.WAIT_FILE;
+			return true;
+		}
+	}
+
+
+	private boolean processFileClose() throws IOException, InvalidCipherTextException {
+		Service.log("Attesa per la ricezione file", 0);
+		byte[] read=TLV.getV(this.getIn());
+		if (read.length==0){
+			Service.log("Nessun file ricevuto. Scambio terminato",0);
+			return false;
+		}
+		else{
+			
+			boolean continua=false;
+			FileOutputStream fout = null;
+			
+			byte[] IV=Arrays.copyOfRange(read, 0, this.getAES().getIV_Chiper().length);
+			byte[] data_enc=Arrays.copyOfRange(read, this.getAES().getIV_Chiper().length, read.length);
+			this.getAES().initDecipher(IV, true);
+			
+			while(!continua){
+				Service.log("Inserire il pathname (incluso il nome del file) dove salvare il file ricevuto",0);
+				String path=Service.leggiStringa("");
+				try{
+				     fout=new FileOutputStream(path);
+				     fout.write(this.getAES().decipherData(data_enc));
+					continua=true;
+
+				}
+				catch (FileNotFoundException e){
+					Service.log("Pathname non corretto, riprovare", 0);
+					continua=false;
+				}
+			}
+				Service.log("File salvato",0);
+				return false;
+		}
 	}
 
 	public String getState(){

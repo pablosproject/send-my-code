@@ -10,7 +10,7 @@ public  class Service
 
     final static String ERRORE_FORMATO = "Attenzione: il dato inserito non e' nel formato corretto";
 
-    static Scanner input = new Scanner(System.in);
+   
 
     /*
      *Stampa un messaggio di log, aggiungendo il tempo
@@ -32,11 +32,11 @@ public  class Service
 		
 		  String host="";
 		  if (c_s==0)
-			  host="Client";
+			  host=" ";
 		  else if (c_s==1)
-			  host="Server";
+			  host=" ";
 		  
-		  System.out.println(ore+":"+minuti+":"+secondi+" - "+" "+host+": "+messaggio);
+		  System.out.println(ore+":"+minuti+":"+secondi+" - "+" "+host+messaggio);
 	}
 	
 
@@ -48,6 +48,8 @@ public  class Service
 	
 	public static  String leggiStringa(String msg) {
 	
+		Scanner input = new Scanner(System.in);
+		
 	    String stringa = "";
 	    boolean letto = false;
 	
@@ -97,7 +99,10 @@ public  class Service
 	
 	
 	public static  int leggiIntero(String messaggio, boolean aCapo) {
-	    boolean finito = false;
+		
+		Scanner input = new Scanner(System.in);
+		
+		boolean finito = false;
 	    int valoreLetto = 0;
 	    do {
 	        if (aCapo) {
@@ -110,6 +115,7 @@ public  class Service
 	            finito = true;
 	        } else {
 	            System.out.println(ERRORE_FORMATO);
+	            input.next();
 	        }
 	    } while (!finito);
 	    return valoreLetto;
@@ -124,6 +130,8 @@ public  class Service
 	}
 	
 	public static synchronized boolean siOno(String messaggio) {
+		
+		
 	    while (true) {
 	        char c = leggiChar(messaggio + " [S/N]\n");
 	        if (c == "S".toCharArray()[0] || c == "s".toCharArray()[0]) {
@@ -137,6 +145,8 @@ public  class Service
 	}
 	
 	public static char leggiChar(String msg) {
+		
+		Scanner input = new Scanner(System.in);
 		
 	    char carattere;
 	    boolean letto = false;
@@ -175,6 +185,55 @@ public  class Service
 		}
 		return nounce;
 	}
+	
+    /**
+    *
+    * @param messaggio
+    * @param minimo
+    * @param massimo
+    * @param aCapo
+    * @return
+    */
+   
+   public static int leggiIntero(String messaggio, int minimo, int massimo, boolean aCapo)
+   {
+    boolean finito = false;
+       int valoreLetto = 0;
+       do {
+           valoreLetto = leggiIntero(messaggio, aCapo);
+           if (valoreLetto >= minimo && valoreLetto <= massimo) {
+               finito = true;
+           } else if (valoreLetto < minimo) {
+               System.out.println("Valore non corretto: "+ minimo);
+           } else {
+               System.out.println("Valore non corretto: "+ massimo);
+           }
+       } while (!finito);
+   
+       return valoreLetto;
+   }
+   
+   
+   public static char tipoMacchina()
+   {
+	   boolean finito=false;
+	   char letto = 0;
+	   while (!finito)
+	   {
+		   letto=leggiChar("Premere 'a' per mettersi in attesa di connessioni su una porta, oppure 'c' " +
+				   "per instaurare una connessione:");
+		   if(letto=='a'||letto=='c')
+		   {
+			   finito=true;
+		   }
+		   else
+		   {
+			   System.out.println("ATTENZIONE: valore non corretto.");
+		   }
+	   }
+	   return letto;
+	   
+   }
 
 }
 

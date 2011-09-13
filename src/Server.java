@@ -64,7 +64,7 @@ public class Server extends Connection {
 	 */
 	public boolean connect(){
 
-		Service.log("Server: In attesa di connessioni dal Client", 2);
+		Service.log("In attesa di connessioni", 2);
 		try {
 			this.client_socket = server_socket.accept();
 		} 
@@ -84,7 +84,7 @@ public class Server extends Connection {
 			}
 		}
 
-		Service.log("Server: connessione avvenuta con successo", 2);
+		Service.log("Connessione avvenuta con successo", 2);
 		//Estraggo gli input e out stream su cui scrivere.
 
 		try {
